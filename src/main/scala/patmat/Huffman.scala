@@ -107,7 +107,24 @@ object Huffman {
   {
     def smallest (freqs: List[(Char, Int)]):(Char,Int) =
     {
-      freqs.foldLeft(freqs.head)(_)
+      freqs.foldLeft(freqs.head)((a,b)=>if(a._2 < b._2) a else b)
+    }
+    
+    def remove(lst:List[(Char,Int)], tple:Tuple2[Char,Int]):List[(Char,Int)] =
+    {
+      lst match
+      {
+        case Nil => Nil
+        case (tple._1,tple._2)::tail => lst.tail
+        case _ => lst.head::remove (lst.tail,tple)
+      }
+    }
+    
+    freqs match 
+    {   
+      case Nil => Nil
+      case head::Nil => List(new Leaf(head._1,head._2))  
+      case head::tail => val small = smallest(freqs);List(new Leaf(small._1,small._2)):::makeOrderedLeafList(remove(freqs,small))
     }
   }
 
