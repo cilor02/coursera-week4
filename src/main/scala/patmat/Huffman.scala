@@ -86,14 +86,11 @@ object Huffman {
        chars match
        {
          case Nil => map
-         case _ =>   map.+(chars.head ->(map.getOrElse(chars.head, 0) + 1))
-                     timesMap(chars.tail,map)
+         case _ => timesMap(chars.tail,map.+(chars.head ->(map.getOrElse(chars.head, 0) + 1)))
        }
     }
     val map = Map[Char,Int]()
-    timesMap(chars,map)
-    map.toList
-    
+    timesMap(chars,map).toList       
   }
 
   /**
@@ -145,8 +142,27 @@ object Huffman {
    * If `trees` is a list of less than two elements, that list should be returned
    * unchanged.
    */
-  def combine(trees: List[CodeTree]): List[CodeTree] = ???
-
+  def combine(trees: List[CodeTree]): List[CodeTree] = 
+  {
+    
+   def insert(trees:List[CodeTree],codeTree: CodeTree): List[CodeTree] =
+   {
+     val newTrees:List[CodeTree] = trees match
+     {
+       case Nil => trees ::: List[CodeTree](codeTree)
+       case head::tail => if(weight(head) > weight(codeTree)) List[CodeTree](codeTree):::trees else List[CodeTree](trees.head):::insert(trees.tail,codeTree)
+     }
+     newTrees
+   }
+   
+   val newTrees = trees match   
+  {
+    case head::tail if (singleton(trees)) => trees
+    case head::tail => insert( trees.drop(2), makeCodeTree(head,tail.head))
+    case _ => trees
+  }
+   newTrees
+ }
   /**
    * This function will be called in the following way:
    *
@@ -164,7 +180,14 @@ object Huffman {
    *    the example invocation. Also define the return type of the `until` function.
    *  - try to find sensible parameter names for `xxx`, `yyy` and `zzz`.
    */
-  def until(xxx: ???, yyy: ???)(zzz: ???): ??? = ???
+  def until(singleTreeCheck: (List[CodeTree])=>Boolean, aggregator: ( List[CodeTree])=> List[CodeTree])(trees:  List[CodeTree]): List[CodeTree] = 
+  {
+    trees match 
+    {
+      case Nil => Nil
+      case head::tail => if(singleTreeCheck(trees)) trees else until(singleTreeCheck,aggregator){aggregator(trees)}
+    }
+  }
 
   /**
    * This function creates a code tree which is optimal to encode the text `chars`.
@@ -172,7 +195,7 @@ object Huffman {
    * The parameter `chars` is an arbitrary text. This function extracts the character
    * frequencies from that text and creates a code tree based on them.
    */
-  def createCodeTree(chars: List[Char]): CodeTree = ???
+  def createCodeTree(chars: List[Char]): CodeTree = (until(singleton,combine)(makeOrderedLeafList(times(chars)))).head
 
 
 
@@ -184,7 +207,25 @@ object Huffman {
    * This function decodes the bit sequence `bits` using the code tree `tree` and returns
    * the resulting list of characters.
    */
-  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = ???
+  def decode(tree: CodeTree, bits: List[Bit]): List[Char] = 
+  {
+    def extractLeaf (tree: CodeTree, root: CodeTree, bits: List[Bit]): List[Char]  =
+    {
+    tree match 
+    {     
+      case f:Fork => if(bits.head == 0) extractLeaf(f.left,root,bits.tail) else extractLeaf(f.right,root,bits.tail)
+      case l:Leaf => print(l.char); List(l.char) :::  decode(root,bits)
+      case _ => Nil
+    }
+  }
+    bits match 
+    {
+      case Nil => Nil
+      case _   => extractLeaf(tree,tree,bits)
+    }
+    
+    
+  }
 
   /**
    * A Huffman coding tree for the French language.
@@ -202,7 +243,7 @@ object Huffman {
   /**
    * Write a function that returns the decoded secret
    */
-  def decodedSecret: List[Char] = ???
+  def decodedSecret: List[Char] = decode(frenchCode,secret)
 
 
 
@@ -212,7 +253,16 @@ object Huffman {
    * This function encodes `text` using the code tree `tree`
    * into a sequence of bits.
    */
-  def encode(tree: CodeTree)(text: List[Char]): List[Bit] = ???
+  def encode(tree: CodeTree)(text: List[Char]): List[Bit] = 
+  {
+   def leftOrRight (tree: CodeTree)(text: List[Char]):Boolean =
+   {
+     tree match 
+     {
+       case f:Fork => f.chars.contains(text.head)
+     }
+   }
+  }
 
 
   // Part 4b: Encoding using code table
