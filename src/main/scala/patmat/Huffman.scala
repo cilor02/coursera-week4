@@ -255,15 +255,32 @@ object Huffman {
    */
   def encode(tree: CodeTree)(text: List[Char]): List[Bit] = 
   {
-   def leftOrRight (tree: CodeTree)(text: List[Char]):Boolean =
+    text match
+    {
+      case head::tail => encodeSingle(tree){head} ::: encode(tree){tail}
+      case Nil => Nil
+    }
+
+  }
+
+  def encodeSingle(tree: CodeTree)(char:Char): List[Bit] = 
+  {
+
+   def leftOrRight (tree: CodeTree)(char: Char):Boolean =
    {
      tree match 
      {
-       case f:Fork => f.chars.contains(text.head)
+       case f:Fork => f.chars.contains(char)
+       case l:Leaf => l.char == char
      }
    }
+   
+   tree match 
+    {
+      case l:Leaf => Nil
+      case f:Fork => if(leftOrRight(f.left){char}) List(0)::: encodeSingle(f.left){char}  else List(1) ::: encodeSingle(f.right){char}
+    }
   }
-
 
   // Part 4b: Encoding using code table
 

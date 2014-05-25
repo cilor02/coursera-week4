@@ -7,5 +7,7 @@ object TestHuffman extends App {
 //val text = "This function creates a code tree which is optimal to encode the text"
 //  println(huffman.createCodeTree(text.toList))
  println(huffman.decodedSecret)
- //println(huffman.decode(huffman.createCodeTree("tweet".toList),List(0,1,1,1,1,0)))
+ println(huffman.decode(huffman.createCodeTree("tweet".toList),List(0,1,1,1,1,0)))
+ 
+ println(huffman.encode(huffman.createCodeTree("tweet".toList))("tweet".toList))
 }
