@@ -214,7 +214,7 @@ object Huffman {
     tree match 
     {     
       case f:Fork => if(bits.head == 0) extractLeaf(f.left,root,bits.tail) else extractLeaf(f.right,root,bits.tail)
-      case l:Leaf => print(l.char); List(l.char) :::  decode(root,bits)
+      case l:Leaf => List(l.char) :::  decode(root,bits)
       case _ => Nil
     }
   }
@@ -290,7 +290,16 @@ object Huffman {
    * This function returns the bit sequence that represents the character `char` in
    * the code table `table`.
    */
-  def codeBits(table: CodeTable)(char: Char): List[Bit] = ???
+  def codeBits(table: CodeTable)(char: Char): List[Bit] = 
+  {
+    table match 
+    {
+      case head::tail if(head._1 == char) => head._2
+      case head::tail => codeBits(tail)(char)
+      case Nil => Nil
+    }
+  }
+    
 
   /**
    * Given a code tree, create a code table which contains, for every character in the
@@ -300,14 +309,26 @@ object Huffman {
    * a valid code tree that can be represented as a code table. Using the code tables of the
    * sub-trees, think of how to build the code table for the entire tree.
    */
-  def convert(tree: CodeTree): CodeTable = ???
-
+  def convert(tree: CodeTree): CodeTable = 
+  {
+    def path(tree: CodeTree, leftRight: List[Bit]): List[(Char, List[Bit])] = 
+    {
+      tree match
+      {
+        case f:Fork => mergeCodeTables(path(f.left,leftRight:::List(0)), path(f.right,leftRight:::List(1)))
+        case l:Leaf => List((l.char,leftRight))
+      }
+    }
+      
+    path(tree,List())
+    
+  }
   /**
    * This function takes two code tables and merges them into one. Depending on how you
    * use it in the `convert` method above, this merge method might also do some transformations
    * on the two parameter code tables.
    */
-  def mergeCodeTables(a: CodeTable, b: CodeTable): CodeTable = ???
+  def mergeCodeTables(a: CodeTable, b: CodeTable): CodeTable = a:::b
 
   /**
    * This function encodes `text` according to the code tree `tree`.
@@ -315,5 +336,23 @@ object Huffman {
    * To speed up the encoding process, it first converts the code tree to a code table
    * and then uses it to perform the actual encoding.
    */
-  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = ???
+  def quickEncode(tree: CodeTree)(text: List[Char]): List[Bit] = 
+  {
+   
+    def quickEncodeChar(table:CodeTable, root:CodeTable, text: List[Char]):List[Bit] =
+    {
+      if (text.isEmpty)
+        Nil
+        else
+      table match 
+      {
+        case Nil => Nil
+        case head::tail if(head._1 == text.head) =>  head._2 :::quickEncodeChar(root,root,text.tail)
+        case head::tail => quickEncodeChar(table.tail,root, text)
+      }
+    }
+    val root = convert(tree)
+    quickEncodeChar(root, root, text)
+    
+  }
 }

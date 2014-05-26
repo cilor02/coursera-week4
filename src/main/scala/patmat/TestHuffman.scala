@@ -10,4 +10,11 @@ object TestHuffman extends App {
  println(huffman.decode(huffman.createCodeTree("tweet".toList),List(0,1,1,1,1,0)))
  
  println(huffman.encode(huffman.createCodeTree("tweet".toList))("tweet".toList))
+ 
+ println(huffman.convert(huffman.createCodeTree("decodedSecret".toList)))
+ 
+ println(huffman.convert(huffman.createCodeTree("huffmanestcool".toList)))
+ 
+ val tree = huffman.createCodeTree("decodedSecret".toList)
+ println(huffman.quickEncode(tree)("Sodded".toList))
 }
